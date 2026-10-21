@@ -135,7 +135,8 @@ pre.msg{white-space:pre-wrap;font:inherit;font-size:.85rem;background:var(--bg);
     </div>
     <label for="f-nota">Notas</label>
     <textarea id="f-nota" placeholder="Ej: sin maní, entregar a las 4 pm"></textarea>
-    <button class="btn" id="guardar" type="button">Guardar pedido</button>
+    <button class="btn" id="guardar" type="button">Guardar y enviar pedido</button>
+    <p class="hint" style="text-align:center;margin-top:8px">Pedidos al WhatsApp <b style="user-select:all">+57 312 609 8148</b></p>
     <div id="msgbox"></div>
   </section>
 
@@ -172,6 +173,7 @@ const PRODS=[
 ];
 const EXTRAS=["Queso rallado","Chocolate","Arequipe","Masmelos","Confites","Galleta triturada","Maní"];
 const EXP=2000;
+const WA="573126098148";
 const fmt=n=>"$"+Math.round(n).toLocaleString("es-CO");
 const nowCO=()=>new Date(new Date().toLocaleString("en-US",{timeZone:"America/Bogota"}));
 const pad=n=>String(n).padStart(2,"0");
@@ -235,7 +237,8 @@ $("guardar").onclick=()=>{
  const o={id,fecha:new Date().toISOString(),cli,tel,ent,dir:ent=="Domicilio"?dir:"",pago,items:PRODS.filter(p=>cart[p.id]).map(p=>({n:p.n,q:cart[p.id],p:p.p})),ext:[...ext],nota:$("f-nota").value.trim(),tot:total(),st:"Nuevo"};
  orders.unshift(o);save();
  const msg=`🍓 Pedido #${id} – Antojos de Yeison\nCliente: ${cli} (${tel})\n${o.items.map(i=>`• ${i.q} × ${i.n}`).join("\n")}${o.ext.length?"\n• Adiciones: "+o.ext.join(", "):""}\n${ent}${o.dir?": "+o.dir:""}\nPago: ${pago}\nTotal: ${fmt(o.tot)}${o.nota?"\nNota: "+o.nota:""}`;
- $("msgbox").innerHTML=`<div class="box" style="margin-top:16px"><b>Pedido #${id} guardado.</b> Mensaje listo para WhatsApp:<pre class="msg" id="msgtxt"></pre><button class="btn alt" id="copiar" type="button">Copiar mensaje</button></div>`;
+ $("msgbox").innerHTML=`<div class="box" style="margin-top:16px"><b>Pedido #${id} guardado.</b> Envíalo al WhatsApp de pedidos <b>+57 312 609 8148</b>:<pre class="msg" id="msgtxt"></pre><a class="btn" id="wa" target="_blank" rel="noopener" style="text-align:center;text-decoration:none;background:#25a35a">Enviar pedido por WhatsApp</a><button class="btn alt" id="copiar" type="button">Copiar mensaje</button></div>`;
+ $("wa").href="https://wa.me/"+WA+"?text="+encodeURIComponent(msg);
  $("msgtxt").textContent=msg;
  $("copiar").onclick=()=>{navigator.clipboard.writeText(msg).then(()=>toast("Mensaje copiado")).catch(()=>{const r=document.createRange();r.selectNodeContents($("msgtxt"));getSelection().removeAllRanges();getSelection().addRange(r);toast("Texto seleccionado: cópialo")})};
  cart={};ext.clear();["f-nom","f-tel","f-dir","f-nota"].forEach(i=>$(i).value="");renderProds();renderRes();renderReg();toast("Pedido #"+id+" guardado en el registro");
