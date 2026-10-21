@@ -2,24 +2,22 @@
 
 App (PWA) para tomar pedidos de postres de fresa. Hecha por Vibras Positivas HM.
 
-- **Cliente:** escoge productos y adiciones, llena sus datos y toca **Enviar pedido por WhatsApp**. Con ese único toque el pedido se abre en el WhatsApp del negocio (+57 312 609 8148) y queda grabado en la hoja de Google de Yeison.
-- **Negocio:** "Acceso del negocio" (abajo en el menú, o el enlace `…/antojos-yeison/#negocio`) pide la clave y muestra el registro: pedidos de hoy, pendientes, vendido y estados Nuevo → Preparando → Entregado / Cancelado.
-
 Publicada en: https://haroldco45.github.io/antojos-yeison/
 
-## Conectar la hoja de Google (una sola vez)
+## Cómo funciona
 
-1. Con la cuenta de Google de Yeison, crea una hoja nueva en Google Sheets, por ejemplo "Pedidos Antojos".
-2. En la hoja: **Extensiones → Apps Script**. Borra lo que haya y pega el contenido de `apps-script/Code.gs`.
-3. Cambia la clave en la línea `const CLAVE = "1234";` y guarda.
-4. **Implementar → Nueva implementación →** tipo **Aplicación web**.
-   - Ejecutar como: **Yo**
-   - Quién tiene acceso: **Cualquier usuario**
-5. Autoriza los permisos y copia la **URL de la aplicación web** (termina en `/exec`).
-6. Pega esa URL en `config.js`, en `API: ""`, y súbelo al repositorio.
+1. **El cliente** escoge productos y adiciones, llena sus datos y toca **Enviar pedido por WhatsApp**.
+   El pedido llega al WhatsApp del negocio (+57 312 609 8148). Al final del mensaje va un enlace con el pedido adentro.
+2. **Yeison** toca ese enlace en su celular. La app abre y el pedido queda guardado en su **Registro**
+   (la primera vez pide la clave del negocio). Si toca el mismo enlace dos veces, no se duplica.
+3. En el Registro ve los pedidos de hoy, los pendientes y lo vendido, y los pasa de
+   Nuevo → Preparando → Entregado (o Cancelado).
 
-Listo: desde ese momento cada pedido queda en la pestaña **Pedidos** de la hoja.
+No usa base de datos ni hoja de Google: el registro vive en el celular de Yeison.
+Por eso tiene **Descargar copia** y **Restaurar copia** en el Registro; conviene sacar una copia cada semana.
 
-Mientras `API` esté vacía, la app funciona en **modo demo** y guarda solo en el celular donde se abre.
+## Configuración
 
-> Si después cambias `Code.gs`, usa **Implementar → Administrar implementaciones → Editar → Versión nueva** para que la URL siga siendo la misma.
+Todo está en `config.js`: el WhatsApp de pedidos, la clave del negocio y la dirección de la app.
+La clave solo evita que un cliente entre por curiosidad al modo negocio; los pedidos guardados
+están en el celular de Yeison, no en internet.

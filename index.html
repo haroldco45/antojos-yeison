@@ -91,6 +91,7 @@ textarea{min-height:64px;resize:vertical}
 pre.msg{white-space:pre-wrap;font:inherit;font-size:.85rem;background:var(--bg);border-radius:10px;padding:10px;margin:8px 0 0;user-select:all}
 @media (prefers-reduced-motion:no-preference){.qty button:active,.btn:active{transform:scale(.96)}}
 .btn.wa{background:#1f8f4e;text-align:center;text-decoration:none}
+label.btn{font-weight:800}
 </style>
 </head>
 <body>
@@ -137,13 +138,13 @@ pre.msg{white-space:pre-wrap;font:inherit;font-size:.85rem;background:var(--bg);
     <label for="f-nota">Notas</label>
     <textarea id="f-nota" placeholder="Ej: sin maní, entregar a las 4 pm"></textarea>
     <a class="btn wa" id="enviar" href="#" target="_blank" rel="noopener">Enviar pedido por WhatsApp</a>
-    <p class="hint" style="text-align:center;margin-top:8px">Tu pedido llega al WhatsApp <b style="user-select:all" id="wa-num"></b> y queda registrado en el negocio.</p>
+    <p class="hint" style="text-align:center;margin-top:8px">Tu pedido llega al WhatsApp <b style="user-select:all" id="wa-num"></b>.</p>
     <div id="msgbox"></div>
   </section>
 
   <section id="v-login" hidden>
     <h2>Acceso del negocio</h2>
-    <p class="hint">Solo para Yeison. Escribe la clave para ver el registro de pedidos.</p>
+    <p class="hint" id="login-hint">Solo para Yeison. Escribe la clave para ver el registro de pedidos.</p>
     <label for="f-pin">Clave</label>
     <input id="f-pin" type="password" inputmode="numeric" autocomplete="current-password">
     <button class="btn" id="entrar" type="button">Entrar</button>
@@ -164,8 +165,13 @@ pre.msg{white-space:pre-wrap;font:inherit;font-size:.85rem;background:var(--bg);
       <button class="chip" type="button" aria-pressed="false" data-v="Preparando">Preparando</button>
       <button class="chip" type="button" aria-pressed="false" data-v="Entregado">Entregados</button>
     </div>
-    <button class="btn alt" id="refrescar" type="button" style="margin:0 0 12px">Actualizar pedidos</button>
-    <div id="lista"></div>
+        <div id="lista"></div>
+    <div class="box" style="margin-top:20px"><b>Copia de seguridad</b>
+      <p class="hint" style="margin:4px 0 0">El registro vive en este celular. Descarga una copia cada semana y guárdala en tu WhatsApp o en Drive.</p>
+      <a class="btn alt" id="bk-down" href="#" style="text-align:center;text-decoration:none">Descargar copia</a>
+      <label class="btn alt" for="bk-up" style="text-align:center;margin-top:10px">Restaurar copia</label>
+      <input type="file" id="bk-up" accept=".json,application/json" hidden>
+    </div>
     <button class="btn alt" id="salir" type="button">Salir del modo negocio</button>
   </section>
 </main>
@@ -175,11 +181,9 @@ pre.msg{white-space:pre-wrap;font:inherit;font-size:.85rem;background:var(--bg);
   <button class="btn" id="bar-go" type="button">Hacer pedido</button>
 </div></div>
 <div class="toast" id="toast" hidden></div>
-
 <script src="config.js"></script>
 <script>
-const CFG=Object.assign({API:"",WA:"573126098148"},window.CONFIG||{});
-const DEMO=!CFG.API;
+const CFG=Object.assign({WA:"573126098148",CLAVE:"1234",URL:"https://haroldco45.github.io/antojos-yeison/",DEMO:false},window.CONFIG||{});
 const IMG=["img/postre1.jpg","img/postre2.jpg","img/postre3.jpg"];
 const PRODS=[
  {id:"exp",n:"Vaso Explosión",d:"Capas de chocolate, crema y fresa, con galleta oscura triturada, confites, masmelos y maní.",p:14000,img:0},
@@ -194,29 +198,31 @@ const nowCO=()=>toCO(Date.now());
 const pad=n=>String(n).padStart(2,"0");
 const hora=d=>{let h=d.getHours(),a=h<12?"a. m.":"p. m.";h=h%12||12;return h+":"+pad(d.getMinutes())+" "+a};
 const diaKey=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
-const LKEY="antojos-yeison-demo",PKEY="antojos-yeison-pin";
-const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
-let cart={},ext=new Set(),ent="Domicilio",pago="Efectivo",filt="Todos",orders=[],pin=ls.get(PKEY)||"",admin=DEMO||!!pin;
+const RKEY="antojos-yeison-registro",AKEY="antojos-yeison-negocio";
+const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
 const $=id=>document.getElementById(id);
+let cart={},ext=new Set(),ent="Domicilio",pago="Efectivo",filt="Todos",cancId=null,pendiente=null;
+let admin=CFG.DEMO||ls.get(AKEY)==="1";
 $("wa-num").textContent="+"+CFG.WA.replace(/^57(\d{3})(\d{3})(\d{4})$/,"57 $1 $2 $3");
-$("modo").textContent=DEMO?"Demo":"Pedidos";
+$("modo").textContent=CFG.DEMO?"Demo":"Pedidos";
 
-/* ---------- Datos: hoja de Google (o demo local) ---------- */
-function demoLoad(){const s=ls.get(LKEY);if(s){try{return JSON.parse(s)}catch(e){}}
- const t=m=>new Date(Date.now()-m*60000).toISOString();
- return [
+/* ---------- Registro en el celular de Yeison ---------- */
+function ejemplos(){const t=m=>new Date(Date.now()-m*60000).toISOString();return [
   {codigo:"AY-EJ3",ej:1,fecha:t(15),cli:"Camila R.",tel:"300 555 0101",ent:"Domicilio",dir:"Barrio El Palmar",pago:"Nequi",items:[{n:"Vaso Explosión",q:2,p:14000}],ext:["Masmelos"],nota:"",tot:30000,st:"Nuevo"},
   {codigo:"AY-EJ2",ej:1,fecha:t(55),cli:"Don Andrés",tel:"311 555 0202",ent:"Recoge",dir:"",pago:"Efectivo",items:[{n:"Bowl fresas con queso",q:1,p:18000},{n:"Fresas con arequipe",q:1,p:12000}],ext:[],nota:"Pasa a las 5",tot:30000,st:"Preparando"},
-  {codigo:"AY-EJ1",ej:1,fecha:t(120),cli:"Sofía M.",tel:"320 555 0303",ent:"Domicilio",dir:"Centro",pago:"Efectivo",items:[{n:"Fresas con arequipe",q:3,p:12000}],ext:["Queso rallado"],nota:"",tot:38000,st:"Entregado"}];}
-const demoSave=()=>ls.set(LKEY,JSON.stringify(orders));
-function post(obj,keep){return fetch(CFG.API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(obj),keepalive:!!keep})}
-async function cargar(){
- if(DEMO){orders=demoLoad();renderReg();return true}
- $("lista").innerHTML='<p class="empty">Cargando pedidos…</p>';
- try{const r=await fetch(CFG.API+"?action=list&pin="+encodeURIComponent(pin));const j=await r.json();
-  if(!j.ok){if(j.error=="PIN"){salir();toast("Clave incorrecta");return false}throw 0}
-  orders=j.pedidos;renderReg();return true}
- catch(e){$("lista").innerHTML='<p class="empty">No se pudieron traer los pedidos. Revisa el internet y toca “Actualizar pedidos”.</p>';return false}}
+  {codigo:"AY-EJ1",ej:1,fecha:t(120),cli:"Sofía M.",tel:"320 555 0303",ent:"Domicilio",dir:"Centro",pago:"Efectivo",items:[{n:"Fresas con arequipe",q:3,p:12000}],ext:["Queso rallado"],nota:"",tot:38000,st:"Entregado"}]}
+let orders=(()=>{const s=ls.get(RKEY);if(s){try{return JSON.parse(s)}catch(e){}}return CFG.DEMO?ejemplos():[]})();
+const guardar=()=>ls.set(RKEY,JSON.stringify(orders));
+function agregar(o){if(orders.some(x=>x.codigo===o.codigo))return false;orders.push(o);orders.sort((a,b)=>b.fecha<a.fecha?-1:1);guardar();return true}
+
+/* ---------- Pedido empacado en el enlace del WhatsApp ---------- */
+const b64e=s=>btoa(String.fromCharCode(...new TextEncoder().encode(s))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+const b64d=s=>new TextDecoder().decode(Uint8Array.from(atob(s.replace(/-/g,"+").replace(/_/g,"/")),c=>c.charCodeAt(0)));
+const empacar=o=>b64e(JSON.stringify([o.codigo,o.fecha,o.cli,o.tel,o.ent,o.dir,o.pago,o.items.map(i=>[i.n,i.q,i.p]),o.ext,o.nota,o.tot]));
+function desempacar(s){const a=JSON.parse(b64d(s));const t=(v,m)=>String(v??"").slice(0,m);
+ const o={codigo:t(a[0],20),fecha:t(a[1],30),cli:t(a[2],60),tel:t(a[3],25),ent:a[4]==="Recoge"?"Recoge":"Domicilio",dir:t(a[5],150),pago:t(a[6],20),
+  items:(a[7]||[]).slice(0,30).map(i=>({n:t(i[0],60),q:+i[1]||0,p:+i[2]||0})),ext:(a[8]||[]).slice(0,15).map(x=>t(x,40)),nota:t(a[9],300),tot:+a[10]||0,st:"Nuevo"};
+ if(!/^AY-/.test(o.codigo)||!o.items.length||isNaN(Date.parse(o.fecha)))throw 0;return o}
 
 /* ---------- Menú y carrito ---------- */
 function count(){return Object.values(cart).reduce((a,b)=>a+b,0)}
@@ -236,7 +242,7 @@ function renderRes(){const it=PRODS.filter(p=>cart[p.id]);
 /* ---------- Registro (solo negocio) ---------- */
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function renderReg(){
- const d=nowCO(),hoyK=diaKey(d);$("hoy").textContent="Hora de Colombia: "+d.toLocaleDateString("es-CO",{weekday:"long",day:"numeric",month:"long"})+", "+hora(d)+(DEMO?" · modo demo":"");
+ const d=nowCO(),hoyK=diaKey(d);$("hoy").textContent="Hora de Colombia: "+d.toLocaleDateString("es-CO",{weekday:"long",day:"numeric",month:"long"})+", "+hora(d)+(CFG.DEMO?" · modo demo":"");
  const hoyL=orders.filter(o=>diaKey(toCO(o.fecha))==hoyK&&o.st!="Cancelado");
  $("s-n").textContent=hoyL.length;$("s-p").textContent=orders.filter(o=>o.st=="Nuevo"||o.st=="Preparando").length;
  $("s-v").textContent=fmt(hoyL.reduce((a,o)=>a+(+o.tot||0),0));
@@ -245,39 +251,46 @@ function renderReg(){
  $("lista").innerHTML=L.length?L.map(o=>{const fd=toCO(o.fecha);const otro=diaKey(fd)!=hoyK?fd.toLocaleDateString("es-CO",{day:"numeric",month:"short"})+" · ":"";
  return `<article class="ord" data-s="${esc(o.st)}"><div class="top"><div><h4>${esc(o.codigo)} · ${esc(o.cli)}${o.ej?'<span class="ex">ejemplo</span>':""}</h4>
  <div class="meta">${otro}${hora(fd)} · ${esc(o.ent)}${o.dir?" · "+esc(o.dir):""} · ${esc(o.pago)}</div></div><span class="pill" data-s="${esc(o.st)}">${esc(o.st)}</span></div>
- <ul>${(o.items||[]).map(i=>`<li>${esc(i.q)} × ${esc(i.n)}</li>`).join("")}${o.ext&&o.ext.length?`<li>Adiciones: ${esc(o.ext.join(", "))}</li>`:""}</ul>
+ <ul>${o.items.map(i=>`<li>${esc(i.q)} × ${esc(i.n)}</li>`).join("")}${o.ext.length?`<li>Adiciones: ${esc(o.ext.join(", "))}</li>`:""}</ul>
  ${o.nota?`<div class="meta">Nota: ${esc(o.nota)}</div>`:""}<div class="line tot" style="font-size:1rem"><span style="user-select:all">${esc(o.tel)}</span><span>${fmt(o.tot)}</span></div>
  <div class="acts">${o.st=="Nuevo"?`<button data-c="${esc(o.codigo)}" data-to="Preparando">Pasar a preparando</button>`:""}${o.st=="Preparando"?`<button data-c="${esc(o.codigo)}" data-to="Entregado">Marcar entregado</button>`:""}${o.st=="Nuevo"||o.st=="Preparando"?`<button data-c="${esc(o.codigo)}" data-to="Cancelado">${cancId==o.codigo?"¿Seguro? Toca otra vez":"Cancelar"}</button>`:""}</div></article>`}).join("")
- :`<p class="empty">No hay pedidos en esta lista todavía.</p>`;}
-let cancId=null;
-async function cambiarEstado(codigo,st){
+ :`<p class="empty">${filt=="Todos"?"Todavía no hay pedidos. Cuando te llegue un pedido por WhatsApp, toca el enlace que trae al final y queda guardado aquí.":"No hay pedidos en esta lista."}</p>`;}
+function cambiarEstado(codigo,st){
  if(st=="Cancelado"&&cancId!==codigo){cancId=codigo;renderReg();return}cancId=null;
- const o=orders.find(x=>x.codigo==codigo);if(!o)return;const ant=o.st;o.st=st;renderReg();
- if(DEMO){demoSave();toast(codigo+": "+st);return}
- try{const r=await post({action:"estado",pin,codigo,st});const j=await r.json();if(!j.ok)throw 0;toast(codigo+": "+st)}
- catch(e){o.st=ant;renderReg();toast("No se guardó el cambio. Revisa el internet.")}}
+ const o=orders.find(x=>x.codigo==codigo);if(!o)return;o.st=st;guardar();renderReg();toast(codigo+": "+st)}
+
+/* ---------- Copia de seguridad ---------- */
+$("bk-down").addEventListener("click",()=>{const d=nowCO();
+ const url=URL.createObjectURL(new Blob([JSON.stringify({app:"antojos-yeison",fecha:new Date().toISOString(),pedidos:orders},null,1)],{type:"application/json"}));
+ $("bk-down").href=url;$("bk-down").download="pedidos-antojos-"+diaKey(d)+".json";setTimeout(()=>URL.revokeObjectURL(url),60000)});
+$("bk-up").addEventListener("change",async e=>{const f=e.target.files[0];if(!f)return;
+ try{const j=JSON.parse(await f.text());let n=0;for(const o of (j.pedidos||[]))if(o&&o.codigo&&Array.isArray(o.items)){if(agregar(o))n++}
+  renderReg();toast(n?n+" pedidos restaurados":"La copia no tenía pedidos nuevos")}catch(err){toast("Ese archivo no es una copia de Antojos de Yeison")}
+ e.target.value=""});
 
 /* ---------- Navegación ---------- */
 function show(v){for(const k of["menu","ped","reg","login"]){$("v-"+k).hidden=k!=v;const t=$("t-"+k);if(t)t.setAttribute("aria-selected",k==v)}
- $("bar").hidden=v!="menu";if(v=="ped")renderRes();if(v=="reg")cargar();scrollTo(0,0)}
+ $("bar").hidden=v!="menu";if(v=="ped")renderRes();if(v=="reg")renderReg();scrollTo(0,0)}
 function setAdmin(on){admin=on;$("t-reg").hidden=!on;$("soy").hidden=on}
-function salir(){pin="";ls.del(PKEY);setAdmin(DEMO);show("menu")}
-function toast(t){$("toast").textContent=t;$("toast").hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>$("toast").hidden=true,2600)}
+function salir(){ls.del(AKEY);setAdmin(CFG.DEMO);show("menu")}
+function toast(t){$("toast").textContent=t;$("toast").hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>$("toast").hidden=true,2800)}
 function seg(id,cb){$(id).addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;
  [...$(id).children].forEach(c=>c.setAttribute("aria-pressed",c==b));cb(b.dataset.v)})}
+function recibir(o){const nuevo=agregar(o);filt="Todos";[...$("seg-f").children].forEach(c=>c.setAttribute("aria-pressed",c.dataset.v=="Todos"));
+ show("reg");toast(nuevo?"Pedido "+o.codigo+" guardado en tu registro":"Ese pedido ya estaba guardado")}
 document.querySelector(".tabs").addEventListener("click",e=>{const b=e.target.closest("button");if(b)show(b.dataset.v)});
 $("prods").addEventListener("click",e=>{const a=e.target.closest("[data-a]"),m=e.target.closest("[data-m]");
  if(a)cart[a.dataset.a]=(cart[a.dataset.a]||0)+1;if(m){cart[m.dataset.m]--;if(!cart[m.dataset.m])delete cart[m.dataset.m]}renderProds()});
 $("extras").addEventListener("click",e=>{const b=e.target.closest("[data-e]");if(!b)return;ext.has(b.dataset.e)?ext.delete(b.dataset.e):ext.add(b.dataset.e);renderProds()});
 $("bar-go").onclick=()=>count()&&show("ped");
 seg("seg-ent",v=>{ent=v;$("dir-wrap").hidden=v!="Domicilio"});seg("seg-pago",v=>pago=v);seg("seg-f",v=>{filt=v;renderReg()});
-$("soy").onclick=()=>show("login");$("volver").onclick=()=>show("menu");$("salir").onclick=salir;$("refrescar").onclick=cargar;
-$("entrar").onclick=async()=>{const p=$("f-pin").value.trim();if(!p)return toast("Escribe la clave");
- if(DEMO){setAdmin(true);show("reg");return}
- pin=p;if(await cargar()){ls.set(PKEY,p);$("f-pin").value="";setAdmin(true);show("reg")}};
+$("soy").onclick=()=>show("login");$("volver").onclick=()=>show("menu");$("salir").onclick=salir;
+$("entrar").onclick=()=>{if($("f-pin").value.trim()!==CFG.CLAVE)return toast("Clave incorrecta");
+ $("f-pin").value="";ls.set(AKEY,"1");setAdmin(true);
+ if(pendiente){const p=pendiente;pendiente=null;recibir(p)}else show("reg")};
 $("lista").addEventListener("click",e=>{const b=e.target.closest("[data-to]");if(b)cambiarEstado(b.dataset.c,b.dataset.to)});
 
-/* ---------- Enviar pedido: WhatsApp + registro en un solo toque ---------- */
+/* ---------- Enviar pedido por WhatsApp (con enlace para el registro) ---------- */
 $("enviar").addEventListener("click",e=>{
  const cli=$("f-nom").value.trim(),tel=$("f-tel").value.trim(),dir=$("f-dir").value.trim();
  const stop=t=>{e.preventDefault();toast(t)};
@@ -286,18 +299,23 @@ $("enviar").addEventListener("click",e=>{
  if(ent=="Domicilio"&&!dir)return stop("Escribe la dirección para el domicilio");
  const d=nowCO();const codigo="AY-"+pad(d.getDate())+pad(d.getHours())+pad(d.getMinutes())+"-"+Math.random().toString(36).slice(2,4).toUpperCase();
  const o={codigo,fecha:new Date().toISOString(),cli,tel,ent,dir:ent=="Domicilio"?dir:"",pago,items:PRODS.filter(p=>cart[p.id]).map(p=>({n:p.n,q:cart[p.id],p:p.p})),ext:[...ext],nota:$("f-nota").value.trim(),tot:total(),st:"Nuevo"};
- const msg=`🍓 Pedido ${codigo} – Antojos de Yeison\nCliente: ${cli} (${tel})\n${o.items.map(i=>`• ${i.q} × ${i.n}`).join("\n")}${o.ext.length?"\n• Adiciones: "+o.ext.join(", "):""}\n${ent=="Domicilio"?"Domicilio: "+o.dir:"Recoge en el local"}\nPago: ${pago}\nTotal: ${fmt(o.tot)}${o.nota?"\nNota: "+o.nota:""}`;
+ const enlace=CFG.URL+"#p="+empacar(o);
+ const msg=`🍓 Pedido ${codigo} – Antojos de Yeison\nCliente: ${cli} (${tel})\n${o.items.map(i=>`• ${i.q} × ${i.n}`).join("\n")}${o.ext.length?"\n• Adiciones: "+o.ext.join(", "):""}\n${ent=="Domicilio"?"Domicilio: "+o.dir:"Recoge en el local"}\nPago: ${pago}\nTotal: ${fmt(o.tot)}${o.nota?"\nNota: "+o.nota:""}\n\n📥 Para el registro del negocio:\n${enlace}`;
  $("enviar").href="https://wa.me/"+CFG.WA+"?text="+encodeURIComponent(msg);
- if(DEMO){orders=demoLoad();orders.unshift(o);demoSave()}
- else post(Object.assign({action:"nuevo"},o),true).catch(()=>{});
- $("msgbox").innerHTML=`<div class="box" style="margin-top:16px"><b>Pedido ${codigo} enviado.</b> Si WhatsApp no se abrió, copia este mensaje y mándalo al ${$("wa-num").textContent}:<pre class="msg" id="msgtxt"></pre><button class="btn alt" id="copiar" type="button">Copiar mensaje</button></div>`;
+ if(admin)agregar(o);
+ $("msgbox").innerHTML=`<div class="box" style="margin-top:16px"><b>Pedido ${codigo} listo.</b> Si WhatsApp no se abrió, copia este mensaje y mándalo al ${$("wa-num").textContent}:<pre class="msg" id="msgtxt"></pre><button class="btn alt" id="copiar" type="button">Copiar mensaje</button></div>`;
  $("msgtxt").textContent=msg;
  $("copiar").onclick=()=>{navigator.clipboard.writeText(msg).then(()=>toast("Mensaje copiado")).catch(()=>{const r=document.createRange();r.selectNodeContents($("msgtxt"));getSelection().removeAllRanges();getSelection().addRange(r);toast("Texto seleccionado: cópialo")})};
  cart={};ext.clear();["f-nom","f-tel","f-dir","f-nota"].forEach(i=>$(i).value="");renderProds();renderRes();
 });
 
+/* ---------- Al abrir ---------- */
 setAdmin(admin);renderProds();
-if(location.hash=="#negocio"&&!admin)show("login");
+(function(){const h=location.hash;
+ if(h.startsWith("#p=")){try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}
+  let o;try{o=desempacar(h.slice(3))}catch(e){toast("Ese enlace de pedido no se pudo leer");return}
+  if(admin)recibir(o);else{pendiente=o;$("login-hint").textContent="Llegó el pedido "+o.codigo+" de "+o.cli+". Escribe la clave del negocio para guardarlo en tu registro.";show("login")}}
+ else if(h=="#negocio"&&!admin)show("login");})();
 </script>
 <script>if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});</script>
 </body>

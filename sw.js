@@ -1,4 +1,4 @@
-const CACHE="antojos-yeison-v3";
+const CACHE="antojos-yeison-v4";
 const FILES=["./","index.html","manifest.json","config.js","img/postre1.jpg","img/postre2.jpg","img/postre3.jpg","img/icon-192.png","img/icon-512.png"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)));self.skipWaiting()});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==CACHE).map(x=>caches.delete(x)))));self.clients.claim()});

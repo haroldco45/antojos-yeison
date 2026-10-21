@@ -1,8 +1,9 @@
 // Configuración de Antojos de Yeison
-// API: pega aquí la URL de la aplicación web de Apps Script (termina en /exec).
-//      Mientras esté vacía, la app funciona en modo demo (guarda solo en este celular).
-// WA:  WhatsApp donde llegan los pedidos (57 + número, sin espacios ni +).
+// WA:    WhatsApp donde llegan los pedidos (57 + número, sin espacios ni +).
+// CLAVE: clave del "Acceso del negocio" en el celular de Yeison. Cámbiala.
+// URL:   dirección pública de la app (la del enlace que viaja en el WhatsApp).
 window.CONFIG = {
-  API: "",
-  WA: "573126098148"
+  WA: "573126098148",
+  CLAVE: "1234",
+  URL: "https://haroldco45.github.io/antojos-yeison/"
 };
