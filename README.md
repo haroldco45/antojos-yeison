@@ -2,7 +2,7 @@
 
 App (PWA) para tomar pedidos de postres de fresa. Hecha por Vibras Positivas HM.
 
-Publicada en: https://haroldco45.github.io/antojos-yeison/
+Publicada en: https://antojos-yeison.netlify.app/
 
 ## Cómo funciona
 

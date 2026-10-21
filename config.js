@@ -5,5 +5,5 @@
 window.CONFIG = {
   WA: "573126098148",
   CLAVE: "1234",
-  URL: "https://haroldco45.github.io/antojos-yeison/"
+  URL: "https://antojos-yeison.netlify.app/"
 };
