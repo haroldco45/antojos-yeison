@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Antojos de Yeison</title>
+<meta name="theme-color" content="#d7263d">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="img/icon-192.png">
+<link rel="apple-touch-icon" href="img/icon-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito+Sans:wght@400;600;700&display=swap">
+<style>
+/* Layout: app de una columna tipo teléfono — barra superior, pestañas Menú / Pedido / Registro */
+:root{
+  --bg:#fff7f3; --surface:#ffffff; --ink:#3a1f1a; --muted:#8a6a62; --line:#f0ddd6;
+  --fresa:#d7263d; --fresa-soft:#ffe3e6; --choco:#5a3325; --arequipe:#c98a2b; --ok:#2f8f5b; --warn:#c98a2b;
+  --display:"Baloo 2",system-ui,sans-serif; --body:"Nunito Sans",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1c1210; --surface:#2a1b18; --ink:#fbeee9; --muted:#c3a49b; --line:#43302b;
+  --fresa:#ff5a6e; --fresa-soft:#4a2026; --choco:#e7b79f; --arequipe:#e9b25a; --ok:#5cc58a; --warn:#e9b25a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1c1210; --surface:#2a1b18; --ink:#fbeee9; --muted:#c3a49b; --line:#43302b;
+  --fresa:#ff5a6e; --fresa-soft:#4a2026; --choco:#e7b79f; --arequipe:#e9b25a; --ok:#5cc58a; --warn:#e9b25a; color-scheme:dark}
+*{box-sizing:border-box}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}img{max-width:100%}[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45}
+.wrap{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 110px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--fresa)}
+header{background:var(--fresa);color:#fff;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+header .in{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 0}
+.brand{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
+h1{font-family:var(--display);font-weight:800;font-size:1.7rem;margin:0;line-height:1}
+.demo{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;background:rgba(255,255,255,.2);padding:3px 8px;border-radius:99px}
+.tabs{display:flex;gap:4px;margin-top:10px}
+.tabs button{flex:1;border:0;background:transparent;color:#fff;font:700 .95rem var(--body);padding:10px 4px;border-bottom:3px solid transparent;opacity:.8;cursor:pointer}
+.tabs button[aria-selected="true"]{border-color:#fff;opacity:1}
+.tabs .n{background:#fff;color:var(--fresa);border-radius:99px;font-size:.72rem;padding:1px 7px;margin-left:4px}
+h2{font-family:var(--display);font-weight:800;font-size:1.3rem;margin:18px 0 8px;text-wrap:balance}
+.hint{color:var(--muted);font-size:.85rem;margin:0 0 12px}
+.prod{display:grid;grid-template-columns:104px 1fr;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:10px;margin-bottom:12px}
+.prod img{width:104px;height:104px;object-fit:cover;border-radius:12px;max-width:100%}
+.prod .info{min-width:0;display:flex;flex-direction:column;gap:4px}
+.prod h3{font-family:var(--display);font-size:1.12rem;margin:0;line-height:1.1}
+.prod p{margin:0;color:var(--muted);font-size:.83rem}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto}
+.price{font-weight:800;color:var(--fresa);font-variant-numeric:tabular-nums}
+.qty{display:flex;align-items:center;gap:6px}
+.qty button{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--fresa);background:var(--surface);color:var(--fresa);font-size:1.2rem;font-weight:800;cursor:pointer;line-height:1}
+.qty button.add{background:var(--fresa);color:#fff}
+.qty span{min-width:20px;text-align:center;font-weight:800;font-variant-numeric:tabular-nums}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:99px;padding:7px 12px;font:600 .85rem var(--body);cursor:pointer}
+.chip[aria-pressed="true"]{border-color:var(--choco);background:var(--choco);color:var(--bg)}
+label{display:block;font-weight:700;font-size:.85rem;margin:12px 0 4px}
+input,textarea,select{width:100%;font:inherit;padding:11px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink)}
+textarea{min-height:64px;resize:vertical}
+:focus-visible{outline:3px solid var(--arequipe);outline-offset:2px}
+.seg{display:flex;gap:8px}
+.seg .chip{flex:1;text-align:center}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 14px}
+.line{display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-variant-numeric:tabular-nums}
+.line.tot{border-top:1.5px dashed var(--line);margin-top:6px;padding-top:8px;font-weight:800;font-size:1.1rem}
+.btn{display:block;width:100%;border:0;border-radius:14px;padding:14px;font:800 1.05rem var(--display);background:var(--fresa);color:#fff;cursor:pointer;margin-top:16px}
+.btn.alt{background:var(--surface);color:var(--fresa);border:1.5px solid var(--fresa)}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));padding-top:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));z-index:6}
+.bar .in{max-width:560px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.bar .t{flex:1;min-width:0;font-variant-numeric:tabular-nums}
+.bar .t b{display:block;font-size:1.15rem}
+.bar .btn{margin:0;width:auto;padding:12px 20px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px;text-align:center}
+.stat b{display:block;font-family:var(--display);font-size:1.25rem;font-variant-numeric:tabular-nums;line-height:1.1}
+.stat span{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.ord{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--fresa);border-radius:14px;padding:12px;margin-bottom:10px}
+.ord[data-s="Preparando"]{border-left-color:var(--warn)}
+.ord[data-s="Entregado"]{border-left-color:var(--ok)}
+.ord .top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.ord h4{margin:0;font-size:1rem}
+.ord .meta{color:var(--muted);font-size:.8rem}
+.ord ul{margin:6px 0;padding-left:18px;font-size:.88rem}
+.pill{font-size:.72rem;font-weight:800;padding:3px 9px;border-radius:99px;background:var(--fresa-soft);color:var(--fresa);white-space:nowrap}
+.pill[data-s="Preparando"]{color:var(--warn)}
+.pill[data-s="Entregado"]{color:var(--ok)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.acts button{flex:1;min-width:110px;border-radius:10px;padding:8px;font:700 .82rem var(--body);border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.ex{font-size:.68rem;color:var(--muted);border:1px dashed var(--line);border-radius:99px;padding:1px 7px;margin-left:6px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(90px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:99px;font-weight:700;z-index:9}
+.empty{text-align:center;color:var(--muted);padding:24px}
+pre.msg{white-space:pre-wrap;font:inherit;font-size:.85rem;background:var(--bg);border-radius:10px;padding:10px;margin:8px 0 0;user-select:all}
+@media (prefers-reduced-motion:no-preference){.qty button:active,.btn:active{transform:scale(.96)}}
+</style>
+</head>
+<body>
+
+<header><div class="in">
+  <div class="brand"><h1>Antojos de Yeison</h1><span class="demo">Demo · nombre provisional</span></div>
+  <div class="tabs" role="tablist">
+    <button role="tab" id="t-menu" aria-selected="true" data-v="menu">Menú</button>
+    <button role="tab" id="t-ped" aria-selected="false" data-v="ped">Pedido <span class="n" id="nCart" hidden>0</span></button>
+    <button role="tab" id="t-reg" aria-selected="false" data-v="reg">Registro <span class="n" id="nNew" hidden>0</span></button>
+  </div>
+</div></header>
+
+<main class="wrap">
+  <section id="v-menu">
+    <h2>¿Qué se te antoja hoy?</h2>
+    <p class="hint">Precios de ejemplo. Yeison los cambia cuando pase sus datos.</p>
+    <div id="prods"></div>
+    <h2>Adiciones</h2>
+    <p class="hint">Toca para agregar a todo el pedido · $2.000 c/u (ejemplo)</p>
+    <div class="chips" id="extras"></div>
+  </section>
+
+  <section id="v-ped" hidden>
+    <h2>Datos del pedido</h2>
+    <div class="box" id="resumen"></div>
+    <label for="f-nom">Nombre del cliente</label>
+    <input id="f-nom" autocomplete="name" placeholder="Ej: Laura Pérez">
+    <label for="f-tel">Celular / WhatsApp</label>
+    <input id="f-tel" inputmode="tel" placeholder="Ej: 300 123 4567">
+    <label>Entrega</label>
+    <div class="seg" id="seg-ent">
+      <button class="chip" type="button" aria-pressed="true" data-v="Domicilio">Domicilio</button>
+      <button class="chip" type="button" aria-pressed="false" data-v="Recoge">Recoge en local</button>
+    </div>
+    <div id="dir-wrap"><label for="f-dir">Dirección y barrio</label>
+    <input id="f-dir" placeholder="Ej: Cra 20 #15-30, Barrio El Palmar"></div>
+    <label>Forma de pago</label>
+    <div class="seg" id="seg-pago">
+      <button class="chip" type="button" aria-pressed="true" data-v="Efectivo">Efectivo</button>
+      <button class="chip" type="button" aria-pressed="false" data-v="Nequi">Nequi</button>
+      <button class="chip" type="button" aria-pressed="false" data-v="Daviplata">Daviplata</button>
+    </div>
+    <label for="f-nota">Notas</label>
+    <textarea id="f-nota" placeholder="Ej: sin maní, entregar a las 4 pm"></textarea>
+    <button class="btn" id="guardar" type="button">Guardar pedido</button>
+    <div id="msgbox"></div>
+  </section>
+
+  <section id="v-reg" hidden>
+    <h2>Registro de pedidos</h2>
+    <p class="hint" id="hoy"></p>
+    <div class="stats">
+      <div class="stat"><b id="s-n">0</b><span>Pedidos</span></div>
+      <div class="stat"><b id="s-p">0</b><span>Pendientes</span></div>
+      <div class="stat"><b id="s-v">$0</b><span>Vendido</span></div>
+    </div>
+    <div class="seg" id="seg-f" style="margin-bottom:12px">
+      <button class="chip" type="button" aria-pressed="true" data-v="Todos">Todos</button>
+      <button class="chip" type="button" aria-pressed="false" data-v="Nuevo">Nuevos</button>
+      <button class="chip" type="button" aria-pressed="false" data-v="Preparando">Preparando</button>
+      <button class="chip" type="button" aria-pressed="false" data-v="Entregado">Entregados</button>
+    </div>
+    <div id="lista"></div>
+  </section>
+</main>
+
+<div class="bar" id="bar"><div class="in">
+  <div class="t"><span class="hint" style="margin:0" id="bar-c">0 productos</span><b id="bar-t">$0</b></div>
+  <button class="btn" id="bar-go" type="button">Hacer pedido</button>
+</div></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const IMG=["img/postre1.jpg","img/postre2.jpg","img/postre3.jpg"];
+const PRODS=[
+ {id:"exp",n:"Vaso Explosión",d:"Capas de chocolate, crema y fresa, con galleta oscura triturada, confites, masmelos y maní.",p:14000,img:0},
+ {id:"are",n:"Fresas con arequipe",d:"Fresas enteras, crema batida y arequipe chorreado en vaso.",p:12000,img:1},
+ {id:"bow",n:"Bowl fresas con queso",d:"Fresas con crema, queso rallado, hilos de chocolate, obleas y salsa de chocolate aparte.",p:18000,img:2},
+];
+const EXTRAS=["Queso rallado","Chocolate","Arequipe","Masmelos","Confites","Galleta triturada","Maní"];
+const EXP=2000;
+const fmt=n=>"$"+Math.round(n).toLocaleString("es-CO");
+const nowCO=()=>new Date(new Date().toLocaleString("en-US",{timeZone:"America/Bogota"}));
+const pad=n=>String(n).padStart(2,"0");
+const hora=d=>{let h=d.getHours(),a=h<12?"a. m.":"p. m.";h=h%12||12;return h+":"+pad(d.getMinutes())+" "+a};
+const KEY="antojos-yeison-v1";
+let cart={},ext=new Set(),ent="Domicilio",pago="Efectivo",filt="Todos",orders=[];
+function load(){try{const s=localStorage.getItem(KEY);if(s){orders=JSON.parse(s);return}}catch(e){}
+ const b=nowCO();const t=m=>{const d=new Date(b);d.setMinutes(d.getMinutes()-m);return d.toISOString()};
+ orders=[
+  {id:3,ej:1,fecha:t(15),cli:"Camila R.",tel:"300 555 0101",ent:"Domicilio",dir:"Barrio El Palmar",pago:"Nequi",items:[{n:"Vaso Explosión",q:2,p:14000}],ext:["Masmelos"],nota:"",tot:30000,st:"Nuevo"},
+  {id:2,ej:1,fecha:t(55),cli:"Don Andrés",tel:"311 555 0202",ent:"Recoge",dir:"",pago:"Efectivo",items:[{n:"Bowl fresas con queso",q:1,p:18000},{n:"Fresas con arequipe",q:1,p:12000}],ext:[],nota:"Pasa a las 5",tot:30000,st:"Preparando"},
+  {id:1,ej:1,fecha:t(120),cli:"Sofía M.",tel:"320 555 0303",ent:"Domicilio",dir:"Centro",pago:"Efectivo",items:[{n:"Fresas con arequipe",q:3,p:12000}],ext:["Queso rallado"],nota:"",tot:38000,st:"Entregado"}];}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(orders))}catch(e){}}
+function count(){return Object.values(cart).reduce((a,b)=>a+b,0)}
+function total(){let s=0;for(const p of PRODS)s+=(cart[p.id]||0)*p.p;return count()?s+ext.size*EXP:0}
+const $=id=>document.getElementById(id);
+function renderProds(){
+ $("prods").innerHTML=PRODS.map(p=>`<article class="prod"><img src="${IMG[p.img]}" alt="${p.n}"><div class="info"><h3>${p.n}</h3><p>${p.d}</p>
+ <div class="row"><span class="price">${fmt(p.p)}</span><div class="qty">${cart[p.id]?`<button aria-label="Quitar ${p.n}" data-m="${p.id}">−</button><span>${cart[p.id]}</span>`:""}<button class="add" aria-label="Agregar ${p.n}" data-a="${p.id}">+</button></div></div></div></article>`).join("");
+ $("extras").innerHTML=EXTRAS.map(e=>`<button class="chip" type="button" aria-pressed="${ext.has(e)}" data-e="${e}">${e}</button>`).join("");
+ updBar();
+}
+function updBar(){const c=count();$("bar-c").textContent=c+(c==1?" producto":" productos");$("bar-t").textContent=fmt(total());
+ $("nCart").hidden=!c;$("nCart").textContent=c;$("bar-go").disabled=!c;$("bar-go").style.opacity=c?1:.5}
+function renderRes(){const it=PRODS.filter(p=>cart[p.id]);
+ $("resumen").innerHTML=it.length?it.map(p=>`<div class="line"><span>${cart[p.id]} × ${p.n}</span><span>${fmt(cart[p.id]*p.p)}</span></div>`).join("")+
+ (ext.size?`<div class="line"><span>Adiciones: ${[...ext].join(", ")}</span><span>${fmt(ext.size*EXP)}</span></div>`:"")+`<div class="line tot"><span>Total</span><span>${fmt(total())}</span></div>`
+ :`<p class="empty">Aún no hay productos. Ve al <b>Menú</b> y toca “+”.</p>`}
+function renderReg(){
+ const d=nowCO();$("hoy").textContent="Hora de Colombia: "+d.toLocaleDateString("es-CO",{weekday:"long",day:"numeric",month:"long"})+", "+hora(d);
+ $("s-n").textContent=orders.length;$("s-p").textContent=orders.filter(o=>o.st!="Entregado").length;
+ $("s-v").textContent=fmt(orders.reduce((a,o)=>a+o.tot,0));
+ const n=orders.filter(o=>o.st=="Nuevo").length;$("nNew").hidden=!n;$("nNew").textContent=n;
+ const L=orders.filter(o=>filt=="Todos"||o.st==filt);
+ $("lista").innerHTML=L.length?L.map(o=>{const f=new Date(o.fecha);const fd=new Date(f.toLocaleString("en-US",{timeZone:"America/Bogota"}));
+ return `<article class="ord" data-s="${o.st}"><div class="top"><div><h4>#${o.id} · ${o.cli}${o.ej?'<span class="ex">ejemplo</span>':""}</h4>
+ <div class="meta">${hora(fd)} · ${o.ent}${o.dir?" · "+o.dir:""} · ${o.pago}</div></div><span class="pill" data-s="${o.st}">${o.st}</span></div>
+ <ul>${o.items.map(i=>`<li>${i.q} × ${i.n}</li>`).join("")}${o.ext.length?`<li>Adiciones: ${o.ext.join(", ")}</li>`:""}</ul>
+ ${o.nota?`<div class="meta">Nota: ${o.nota}</div>`:""}<div class="line tot" style="font-size:1rem"><span>${o.tel}</span><span>${fmt(o.tot)}</span></div>
+ <div class="acts">${o.st=="Nuevo"?`<button data-s="${o.id}" data-to="Preparando">Pasar a preparando</button>`:""}${o.st=="Preparando"?`<button data-s="${o.id}" data-to="Entregado">Marcar entregado</button>`:""}<button data-del="${o.id}">${delId==o.id?"¿Seguro? Toca otra vez":"Borrar"}</button></div></article>`}).join("")
+ :`<p class="empty">No hay pedidos en esta lista todavía.</p>`;
+}
+let delId=null;
+function show(v){for(const k of["menu","ped","reg"]){$("v-"+k).hidden=k!=v;$("t-"+k).setAttribute("aria-selected",k==v)}
+ $("bar").hidden=v!="menu";if(v=="ped")renderRes();if(v=="reg")renderReg();scrollTo(0,0)}
+function toast(t){$("toast").textContent=t;$("toast").hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>$("toast").hidden=true,2200)}
+function seg(id,cb){$(id).addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;
+ [...$(id).children].forEach(c=>c.setAttribute("aria-pressed",c==b));cb(b.dataset.v)})}
+document.querySelector(".tabs").addEventListener("click",e=>{const b=e.target.closest("button");if(b)show(b.dataset.v)});
+$("prods").addEventListener("click",e=>{const a=e.target.closest("[data-a]"),m=e.target.closest("[data-m]");
+ if(a)cart[a.dataset.a]=(cart[a.dataset.a]||0)+1;if(m){cart[m.dataset.m]--;if(!cart[m.dataset.m])delete cart[m.dataset.m]}renderProds()});
+$("extras").addEventListener("click",e=>{const b=e.target.closest("[data-e]");if(!b)return;ext.has(b.dataset.e)?ext.delete(b.dataset.e):ext.add(b.dataset.e);renderProds()});
+$("bar-go").onclick=()=>count()&&show("ped");
+seg("seg-ent",v=>{ent=v;$("dir-wrap").hidden=v!="Domicilio"});seg("seg-pago",v=>pago=v);seg("seg-f",v=>{filt=v;renderReg()});
+$("guardar").onclick=()=>{
+ const cli=$("f-nom").value.trim(),tel=$("f-tel").value.trim(),dir=$("f-dir").value.trim();
+ if(!count())return toast("Agrega al menos un producto desde el Menú");
+ if(!cli||!tel)return toast("Escribe el nombre y el celular del cliente");
+ if(ent=="Domicilio"&&!dir)return toast("Escribe la dirección para el domicilio");
+ const id=orders.reduce((a,o)=>Math.max(a,o.id),0)+1;
+ const o={id,fecha:new Date().toISOString(),cli,tel,ent,dir:ent=="Domicilio"?dir:"",pago,items:PRODS.filter(p=>cart[p.id]).map(p=>({n:p.n,q:cart[p.id],p:p.p})),ext:[...ext],nota:$("f-nota").value.trim(),tot:total(),st:"Nuevo"};
+ orders.unshift(o);save();
+ const msg=`🍓 Pedido #${id} – Antojos de Yeison\nCliente: ${cli} (${tel})\n${o.items.map(i=>`• ${i.q} × ${i.n}`).join("\n")}${o.ext.length?"\n• Adiciones: "+o.ext.join(", "):""}\n${ent}${o.dir?": "+o.dir:""}\nPago: ${pago}\nTotal: ${fmt(o.tot)}${o.nota?"\nNota: "+o.nota:""}`;
+ $("msgbox").innerHTML=`<div class="box" style="margin-top:16px"><b>Pedido #${id} guardado.</b> Mensaje listo para WhatsApp:<pre class="msg" id="msgtxt"></pre><button class="btn alt" id="copiar" type="button">Copiar mensaje</button></div>`;
+ $("msgtxt").textContent=msg;
+ $("copiar").onclick=()=>{navigator.clipboard.writeText(msg).then(()=>toast("Mensaje copiado")).catch(()=>{const r=document.createRange();r.selectNodeContents($("msgtxt"));getSelection().removeAllRanges();getSelection().addRange(r);toast("Texto seleccionado: cópialo")})};
+ cart={};ext.clear();["f-nom","f-tel","f-dir","f-nota"].forEach(i=>$(i).value="");renderProds();renderRes();renderReg();toast("Pedido #"+id+" guardado en el registro");
+};
+$("lista").addEventListener("click",e=>{const s=e.target.closest("[data-to]"),d=e.target.closest("[data-del]");
+ if(s){const o=orders.find(x=>x.id==s.dataset.s);o.st=s.dataset.to;save();renderReg();toast("Pedido #"+o.id+": "+o.st)}
+ if(d){const id=+d.dataset.del;if(delId===id){orders=orders.filter(o=>o.id!==id);delId=null;save();toast("Pedido borrado")}else delId=id;renderReg()}});
+load();renderProds();renderReg();
+</script>
+<script>if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});</script>
+</body>
+</html>
